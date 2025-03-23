@@ -7,10 +7,10 @@ import { Text } from 'src/ui/text';
 import styles from './Article.module.scss';
 
 // Типизация для пропсов компонента Article
-type PropsArticle = {
-	onClick?: () => void;
-};
-export const Article = (props: PropsArticle) => {
+
+interface ArticleProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export const Article: React.FC<ArticleProps> = ({ children, ...props }) => {
 	return (
 		<article onClick={props.onClick} className={clsx(styles.article)}>
 			<Text as='h1' size={45} weight={800} uppercase dynamicLite>

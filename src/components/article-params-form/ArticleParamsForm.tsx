@@ -1,143 +1,120 @@
-// Импорт необходимых компонентов и стилей
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
-import styles from './ArticleParamsForm.module.scss';
-
-import { useRef, useState } from 'react';
-import clsx from 'clsx';
-
 import { Select } from 'src/ui/select'; // Импорт Select из папки ui
 import { Text } from 'src/ui/text'; // Импорт Text из папки ui
 import { Separator } from 'src/ui/separator'; // Импорт Separator из папки ui
 import { RadioGroup } from 'src/ui/radio-group'; // Импорт RadioGroup из папки ui
 import { useClose } from 'src/hooks/useClose'; // Импорт кастомного хука для закрытия формы
 
-import {
-	OptionType,
-	fontFamilyOptions,
-	fontSizeOptions,
-	fontColors,
-	backgroundColors,
-	contentWidthArr,
-	defaultArticleState,
-	ArticleStateType,
-} from 'src/constants/articleProps'; // Импорт констант
+import { fontFamilyOptions, fontSizeOptions, fontColors, backgroundColors, contentWidthArr, defaultArticleState, ArticleStateType, OptionType } from 'src/constants/articleProps';
+import { useRef, useState } from 'react';
+import clsx from 'clsx';
+import styles from './ArticleParamsForm.module.scss';
 
-type PropsArticleParamsForm = {
-	onSubmit: (params: ArticleStateType) => void;
+type Props = {
+  onSubmit: (params: ArticleStateType) => void;
 };
 
-export const ArticleParamsForm = ({ onSubmit }: PropsArticleParamsForm) => {
-	const [params, setParams] = useState<ArticleStateType>(defaultArticleState);
-	const [formOpen, setFormOpen] = useState(false); // Управление открытием формы
-	const formRef = useRef<HTMLFormElement>(null);
+export const ArticleParamsForm = ({ onSubmit }: Props) => {
+  const [formVisible, setFormVisibility] = useState(false);
+  const formContainer = useRef<HTMLFormElement>(null);
+  const [currentParams, updateParams] = useState<ArticleStateType>(defaultArticleState);
 
-	useClose({
-		isOpen: formOpen,
-		onClose: () => setFormOpen(false), // Закрываем форму при клике вне или по ESC
-		rootRef: formRef,
-	});
+  useClose({
+    isOpen: formVisible,
+    onCloseAction: () => setFormVisibility(false),
+    containerRef: formContainer,
+  });
 
-	// Функция для переключения состояния формы (открыта/закрыта)
-	const toggleForm = () => {
-		setFormOpen(!formOpen);
-	};
+  const toggleFormVisibility = () => setFormVisibility(prev => !prev);
 
-	// Обработчик отправки формы
-	const submitParams = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		onSubmit(params); // Отправляем параметры в родительский компонент
-	};
+  const applyChanges = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit(currentParams);
+  };
 
-	// Обработчик сброса стилей
-	const resetStyles = () => {
-		setParams(defaultArticleState);
-		onSubmit(defaultArticleState); // Сбрасываем стили в родительском компоненте
-	};
+  const revertToDefaults = () => {
+    updateParams(defaultArticleState);
+    onSubmit(defaultArticleState);
+  };
 
-	// Функции для изменения различных параметров состояния
-	const handleFontFamilyChange = (option: OptionType) => {
-		setParams((prev) => ({ ...prev, fontFamilyOption: option })); // Шрифт
-	};
+  const updateFontFamily = (newOption: OptionType) => {
+    updateParams(prev => ({ ...prev, fontFamilyOption: newOption }));
+  };
 
-	const handleFontSizeChange = (option: OptionType) => {
-		setParams((prev) => ({ ...prev, fontSizeOption: option })); // Размер шрифта
-	};
+  const adjustFontSize = (selectedOption: OptionType) => {
+    updateParams(prev => ({ ...prev, fontSizeOption: selectedOption }));
+  };
 
-	const handleFontColorChange = (option: OptionType) => {
-		setParams((prev) => ({ ...prev, fontColor: option })); // Цвет шрифта
-	};
+  const changeFontColor = (colorOption: OptionType) => {
+    updateParams(prev => ({ ...prev, fontColor: colorOption }));
+  };
 
-	const handleBackgroundColorChange = (option: OptionType) => {
-		setParams((prev) => ({ ...prev, backgroundColor: option })); // Цвет фона
-	};
+  const setBgColor = (colorOption: OptionType) => {
+    updateParams(prev => ({ ...prev, backgroundColor: colorOption }));
+  };
 
-	const handleContentWidthChange = (option: OptionType) => {
-		setParams((prev) => ({ ...prev, contentWidth: option }));
-	};
+  const setContainerWidth = (widthOption: OptionType) => {
+    updateParams(prev => ({ ...prev, contentWidth: widthOption }));
+  };
 
-	// Определяем классы для бокового меню
-	const sidebarStyle = clsx({
-		[styles.container]: true, // Основной класс
-		[styles.container_open]: formOpen, // Добавляем класс для открытой формы
-	});
+  const sidebarClasses = clsx(styles.container, {
+    [styles.container_open]: formVisible,
+  });
 
-	// Возвращаем JSX для отображения компонентов в DOM
-	return (
-		<>
-			<ArrowButton isOpen={formOpen} onClick={toggleForm} />
-			<aside className={sidebarStyle}>
-				{/* Боковая панель с формой */}
-				<form
-					ref={formRef}
-					className={styles.form}
-					onSubmit={submitParams}
-					onReset={resetStyles}>
-					<Text size={31} weight={800} uppercase as='h2'>
-						{'Задайте параметры'}
-					</Text>
-					<Select
-						onChange={handleFontFamilyChange}
-						selected={params.fontFamilyOption}
-						placeholder='Open Sans'
-						title='Шрифт'
-						options={fontFamilyOptions}
-					/>
-					<RadioGroup
-						name={params.fontSizeOption.className}
-						options={fontSizeOptions}
-						selected={params.fontSizeOption}
-						onChange={handleFontSizeChange}
-						title={'Размер шрифта'}
-					/>
-					<Select
-						onChange={handleFontColorChange}
-						selected={params.fontColor}
-						placeholder={params.fontColor.title}
-						title='Цвет шрифта'
-						options={fontColors}
-					/>
-					<Separator />
-					<Select
-						onChange={handleBackgroundColorChange}
-						selected={params.backgroundColor}
-						placeholder={params.backgroundColor.title}
-						title='Цвет фона'
-						options={backgroundColors}
-					/>
-					<Select
-						onChange={handleContentWidthChange}
-						selected={params.contentWidth}
-						placeholder={params.contentWidth.title}
-						title='Ширина контента'
-						options={contentWidthArr}
-					/>
-					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' htmlType='reset' type='clear' />
-						<Button title='Применить' htmlType='submit' type='apply' />
-					</div>
-				</form>
-			</aside>
-		</>
-	);
+  return (
+    <>
+      <ArrowButton isOpen={formVisible} onClick={toggleFormVisibility} />
+      <aside className={sidebarClasses}>
+        <form
+          ref={formContainer}
+          className={styles.form}
+          onSubmit={applyChanges}
+          onReset={revertToDefaults}
+        >
+          <Text as="h2" size={31} weight={800} uppercase>Задайте параметры</Text>
+          <RadioGroup
+            name={currentParams.fontSizeOption.className}
+            options={fontSizeOptions}
+            selected={currentParams.fontSizeOption}
+            onChange={adjustFontSize}
+            title="Размер шрифта"
+          />
+          <Select
+            onChange={updateFontFamily}
+            selected={currentParams.fontFamilyOption}
+            placeholder="Open Sans"
+            title="Шрифт"
+            options={fontFamilyOptions}
+          />
+          <Select
+            onChange={changeFontColor}
+            selected={currentParams.fontColor}
+            placeholder={currentParams.fontColor.title}
+            title="Цвет шрифта"
+            options={fontColors}
+          />
+          <Separator />
+          <Select
+            onChange={setBgColor}
+            selected={currentParams.backgroundColor}
+            placeholder={currentParams.backgroundColor.title}
+            title="Цвет фона"
+            options={backgroundColors}
+          />
+          <Select
+            onChange={setContainerWidth}
+            selected={currentParams.contentWidth}
+            placeholder={currentParams.contentWidth.title}
+            title="Ширина контента"
+            options={contentWidthArr}
+          />
+          <div className={styles.bottomContainer}>
+            <Button title="Сбросить" htmlType="reset" type="clear" />
+            <Button title="Применить" htmlType="submit" type="apply" />
+          </div>
+        </form>
+      </aside>
+    </>
+  );
 };
