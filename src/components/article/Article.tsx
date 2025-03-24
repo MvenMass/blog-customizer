@@ -8,9 +8,9 @@ import styles from './Article.module.scss';
 
 // Типизация для пропсов компонента Article
 
-interface ArticleProps extends React.HTMLAttributes<HTMLDivElement> {}
+type ArticleProps = React.HTMLAttributes<HTMLDivElement>;
 
-export const Article: React.FC<ArticleProps> = ({ children, ...props }) => {
+export const Article: React.FC<ArticleProps> = ({ ...props }) => {
 	return (
 		<article onClick={props.onClick} className={clsx(styles.article)}>
 			<Text as='h1' size={45} weight={800} uppercase dynamicLite>
